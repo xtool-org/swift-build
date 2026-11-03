@@ -1296,6 +1296,9 @@ fileprivate struct PreviewsBuildOperationTests: CoreBasedTests {
                 let thunkInfo = try #require(previewInfos.only?.thunkInfo)
                 let compileCommandLine = thunkInfo.compileCommandLine
 
+                let scanDiagnostics = Path(thunkInfo.thunkObjectFile.withoutSuffix + "-dependency-scan.dia")
+                #expect(tester.fs.exists(scanDiagnostics), "expected dependency scan diagnostics at \(scanDiagnostics.str)")
+
                 // Establish that this build really is prefix mapped, so the rest of the test is
                 // exercising the interesting configuration rather than passing by default.
                 let prefixMapper = SwiftCompilerSpec.cacheReplayPrefixMapper(commandLine: compileCommandLine)
@@ -1411,6 +1414,9 @@ fileprivate struct PreviewsBuildOperationTests: CoreBasedTests {
             "-working-directory", "\(srcRoot.str)",
             "-experimental-emit-module-separately",
             "-disable-cmo",
+            ], explicitModuleBuild ? [
+            "-dependency-scan-serialize-diagnostics-path", "\(srcRoot.str)/build/ProjectName.build/Debug-iphoneos/\(targetName).build/Objects-normal/\(arch)/main.selection.preview-thunk-dependency-scan.dia",
+            ] : [], [
             "-disable-bridging-pch",
             "\(srcRoot.str)/build/ProjectName.build/Debug-iphoneos/\(targetName).build/Objects-normal/\(arch)/main.selection.preview-thunk.swift",
             "-o", "\(srcRoot.str)/build/ProjectName.build/Debug-iphoneos/\(targetName).build/Objects-normal/\(arch)/main.selection.preview-thunk.o",
