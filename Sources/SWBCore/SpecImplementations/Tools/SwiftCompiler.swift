@@ -3214,9 +3214,16 @@ public final class SwiftCompilerSpec : CompilerSpec, SpecIdentifierType, SwiftDi
             "-emit-localized-strings-path",
             "-pch-output-dir",
             "-const-gather-protocols-list",
-            "-dependency-scan-serialize-diagnostics-path"
         ] {
             removeWithParameter(arg)
+        }
+
+        // Don't clobber the original dependency scan diagnostics file...
+        if commandLine.contains("-dependency-scan-serialize-diagnostics-path") {
+            removeWithParameter("-dependency-scan-serialize-diagnostics-path")
+            // ...but provide a scratch path in its stead. If we don't supply this arg, the driver will
+            // write the .dia into the cwd of this process if in XOJIT mode
+            commandLine += ["-dependency-scan-serialize-diagnostics-path", basePath.str + "-dependency-scan.dia"]
         }
 
         // For some old version of swift driver, the output path for bridging header pch is not stable,
