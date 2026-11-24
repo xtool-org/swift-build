@@ -301,10 +301,21 @@ extension FileCopyTaskActionContext {
         let isMacCatalyst = cbc.producer.sdkVariant?.isMacCatalyst == true
 
         let stubPartialCommonCommandLine = ["-isysroot", scope.evaluate(BuiltinMacros.SDKROOT).str]
+
+        var stubPartialExtraLinkerArgs: [String] = []
+        let alternateLinker = scope.evaluate(BuiltinMacros.ALTERNATE_LINKER)
+        if !alternateLinker.isEmpty {
+            stubPartialExtraLinkerArgs.append("-fuse-ld=\(alternateLinker)")
+        }
+        let alternateLinkerPath = scope.evaluate(BuiltinMacros.ALTERNATE_LINKER_PATH)
+        if !alternateLinkerPath.isEmpty {
+            stubPartialExtraLinkerArgs.append("--ld-path=\(alternateLinkerPath.str)")
+        }
+
         self.init(
             skipAppStoreDeployment: scope.evaluate(BuiltinMacros.ASSETCATALOG_COMPILER_SKIP_APP_STORE_DEPLOYMENT),
             stubPartialCompilerCommandLine: [compilerPath.str] + stubPartialCommonCommandLine + ["-x", "c", "-c", Path.null.str],
-            stubPartialLinkerCommandLine: [linkerPath.str] + stubPartialCommonCommandLine + ["-dynamiclib", "-Xlinker", "-adhoc_codesign"],
+            stubPartialLinkerCommandLine: [linkerPath.str] + stubPartialCommonCommandLine + stubPartialExtraLinkerArgs + ["-dynamiclib", "-Xlinker", "-adhoc_codesign"],
             stubPartialLipoCommandLine: [lipoPath.str, "-create"],
             partialTargetValues: partialTargetValues,
             llvmTargetTripleOSVersion: llvmTargetTripleOSVersion,
